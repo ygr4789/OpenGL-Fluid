@@ -9,6 +9,3 @@ struct Water {
 };
 
 float gravity = -9.8; // m/s^2
-
-float poly6Kernel(glm::vec3 r, float h) {
-}
