@@ -6,6 +6,13 @@
 
 #include "particle.h"
 
+/* Kernel Function Coefficient */
+#define KERNEL_DISTANCE 1
+#define SQR_KERNEL_DISTANCE pow(KERNEL_DISTANCE, 2)
+#define KERNEL_FACTOR 315 / 64 / AI_MATH_PI / pow(KERNEL_DISTANCE, 9)
+#define GRAD_FACTOR -45 / AI_MATH_PI / pow(KERNEL_DISTANCE, 6)
+#define LAP_FACTOR 45 / AI_MATH_PI / pow(KERNEL_DISTANCE, 6)
+
 using namespace std;
 
 class SPH {
@@ -21,32 +28,29 @@ public:
         }
     }
 private:
-    float poly6Kernel(glm::vec3 r, float h);
-    glm::vec3 poly6Grad(glm::vec3 r, float h);
-    float poly6Lap(glm::vec3 r, float h);
+    float poly6Kernel(glm::vec3 r);
+    glm::vec3 poly6Grad(glm::vec3 r);
+    float poly6Lap(glm::vec3 r);
 };
 
-float SPH::poly6Kernel(glm::vec3 r, float h) {
-    float coef = 315 / (64 * AI_MATH_PI_F * (pow(h, 9)));
-    float val = pow(h, 2) - pow(r.length(), 2);
-    float res = coef * pow(val, 3);
-    return res;
+float SPH::poly6Kernel(glm::vec3 r) {
+    float len = glm::length(r);
+    if (KERNEL_DISTANCE <= len) return 0.0;
+    float sqrd = pow(len, 2);
+    return KERNEL_FACTOR * pow(SQR_KERNEL_DISTANCE - sqrd, 3);
 }
 
-glm::vec3 SPH::poly6Grad(glm::vec3 r, float h) {
-    float coef = -45 / (AI_MATH_PI_F * (pow(h, 6)));
-    float len = r.length();
-    float val = pow(h - len, 2) / len;
-    glm::vec3 res = coef * val * r;
-    return res;
+glm::vec3 SPH::poly6Grad(glm::vec3 r) {
+    float len = glm::length(r);
+    if (KERNEL_DISTANCE <= len) return glm::vec3(0, 0, 0);
+    float val = pow(KERNEL_DISTANCE - len, 2) / len;
+    return val * r;
 }
 
-float SPH::poly6Lap(glm::vec3 r, float h) {
-    float coef = 45 / (AI_MATH_PI_F * (pow(h, 6)));
+float SPH::poly6Lap(glm::vec3 r) {
     float len = r.length();
-    float val = h - len;
-    float res = coef * val;
-    return res;
+    if (KERNEL_DISTANCE <= len) return 0.0;
+    return LAP_FACTOR * (KERNEL_DISTANCE - len);
 }
 
 #endif
