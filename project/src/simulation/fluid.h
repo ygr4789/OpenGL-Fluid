@@ -28,10 +28,7 @@ public:
         for (int x = -3; x <= 3; x++) {
             for (int y = -3; y<= 3; y++) {
                 for (int z = -3; z<= 3; z++) {
-                    Particle p;
-                    p.pos.x = (float)x;
-                    p.pos.y = (float)y;
-                    p.pos.z = (float)z;
+                    Particle p((float)x, (float)y, (float)z);
                     particles.push_back(p);
                 }
             }

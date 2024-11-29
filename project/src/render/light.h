@@ -35,9 +35,9 @@ public:
 		return glm::lookAt(lightPos, center, glm::vec3(0, 1, 0));
 	}
 
-	glm::mat4 getProjectionMatrix(float near = 0.1f, float far = 50.0f) {
+	glm::mat4 getProjectionMatrix(float n = 0.1f, float f = 50.0f) {
 		// For simplicity, just use static projection matrix. (Actually we have to be more accurate with considering camera's frustum)
-		return glm::ortho(-15.0f, 15.0f, -15.0f, 15.0f, near, far);
+		return glm::ortho(-15.0f, 15.0f, -15.0f, 15.0f, n, f);
 	}
 	
 	glm::mat4 getLightSpaceMatrix(const glm::mat4 &proj, const glm::mat4 &view) {
