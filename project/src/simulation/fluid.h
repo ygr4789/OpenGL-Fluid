@@ -28,11 +28,12 @@ public:
         for (int x = -3; x <= 3; x++) {
             for (int y = -3; y<= 3; y++) {
                 for (int z = -3; z<= 3; z++) {
-                    Particle p((float)x, (float)y, (float)z);
+                    Particle p((float)x, (float)y, (float)z, 1, true);
                     particles.push_back(p);
                 }
             }
         }
+        simulator.init();
         setupFluid();
     }
     

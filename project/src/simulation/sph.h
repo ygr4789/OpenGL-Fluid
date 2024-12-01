@@ -6,12 +6,20 @@
 
 #include "particle.h"
 
+constexpr float power(float x, int n) {
+    float res = 1;
+    for (int i = 0; i < n; i++) {
+        res *= x;
+    }
+    return res;
+}
+
 /* Kernel Function Coefficient */
-#define KERNEL_DISTANCE 1
-#define SQR_KERNEL_DISTANCE pow(KERNEL_DISTANCE, 2)
-#define KERNEL_FACTOR 315 / 64 / AI_MATH_PI / pow(KERNEL_DISTANCE, 9)
-#define GRAD_FACTOR -45 / AI_MATH_PI / pow(KERNEL_DISTANCE, 6)
-#define LAP_FACTOR 45 / AI_MATH_PI / pow(KERNEL_DISTANCE, 6)
+constexpr float KERNEL_DISTANCE = 1;
+constexpr float SQR_KERNEL_DISTANCE = power(KERNEL_DISTANCE, 2);
+constexpr float KERNEL_FACTOR = 315 / 64 / AI_MATH_PI / power(KERNEL_DISTANCE, 9);
+constexpr float GRAD_FACTOR = -45 / AI_MATH_PI / power(KERNEL_DISTANCE, 6);
+constexpr float LAP_FACTOR = 45 / AI_MATH_PI / power(KERNEL_DISTANCE, 6);
 
 using namespace std;
 
@@ -20,9 +28,23 @@ public:
     vector<Particle> &particles;
     
     SPH(vector<Particle> &_particles): particles(_particles){}
+
+    void init() {
+        computeDensity();
+        float max_density = 0.0;
+        for (auto p : particles) {
+            max_density = max(max_density, p.density);
+        }
+        float mass_particle = WATER_DENSITY / max_density;
+        for (auto p : particles) {
+            p.mass = mass_particle;
+        }
+        computeProperties();
+    }
     
     void update(float dt) {
-        // simulate SPH
+        computeProperties();
+        computeAcceleration();
         for (auto &p : particles) {
             p.update(dt);
         }
@@ -71,21 +93,22 @@ void SPH::computeProperties() {
         p.density = 0;
         for (auto& p_ : particles) {
             glm::vec3 r = p.pos - p_.pos;
+            //printf("%f, %f, %f\n", r.x, r.y, r.z);
             p.density += p.mass * poly6Kernel(r);
+            //p.print();
         }
-        float coef = WATER_GAS_CONSTANT;
-        float val = WATER_DENSITY;
-        p.pressure = coef * (p.density - val);
+        p.pressure = WATER_GAS_CONSTANT * (p.density - WATER_DENSITY);
     }
 }
 
 void SPH::computeAcceleration() {
     for (auto& p : particles) {
-        p.acc = GRAVITY;
+        p.acc = glm::vec3(0, GRAVITY, 0);
         glm::vec3 acc_pressure = glm::vec3(0, 0, 0);
         glm::vec3 acc_viscosity = glm::vec3(0, 0, 0);
         glm::vec3 acc_p_ = glm::vec3(0, 0, 0);
         glm::vec3 acc_v_ = glm::vec3(0, 0, 0);
+        //p.print();
         for (auto& p_ : particles) {
             glm::vec3 r = p.pos - p_.pos;
             acc_p_ = poly6Grad(r);
@@ -99,8 +122,8 @@ void SPH::computeAcceleration() {
             acc_viscosity += acc_v_;
         }
         p.acc = -(p.acc + acc_pressure) / p.density;
-        float val = -WATER_VISCOSITY;
-        p.acc = val * (p.acc + acc_viscosity);
+        p.acc = -WATER_VISCOSITY * (p.acc + acc_viscosity);
+        //p.print();
     }
 }
 
