@@ -5,18 +5,22 @@
 #include <vector>
 
 /* Properties of Water */
-#define WATER_DENSITY 998
-#define WATER_GAS_CONSTANT 2000
-#define WATER_VISCOSITY 0.5
-#define WATER_COLOR "#0000ff"
-#define WATER_PARTICLE_RADIUS 0.1
-#define GRAVITY glm::vec3(0, -9.8, 0)
+constexpr float WATER_DENSITY = 998;
+constexpr float WATER_GAS_CONSTANT = 2000;
+constexpr float WATER_VISCOSITY = 0.5;
+constexpr float WATER_PARTICLE_RADIUS = 0.1;
+constexpr float GRAVITY = -9.8;
+
+/* Boundary Condition */
+constexpr float BOUNDARY = 10;
+constexpr float EPSILON = 0.1;
 
 using namespace std;
 
 struct Particle {
     Particle(float x, float y, float z, float m, bool b);
     void update(float dt);
+    void print();
     glm::vec3 pos;
     glm::vec3 vel;
     glm::vec3 acc;
@@ -41,6 +45,24 @@ Particle::Particle(float x = 0, float y = 0, float z = 0, float m = 0, bool b = 
 void Particle::update(float dt) {
     vel += (acc * dt);
     pos += (vel * dt);
+    if (pos.x < -(BOUNDARY - EPSILON)) {
+        pos.x = -(BOUNDARY - EPSILON);
+    } else if (pos.x > BOUNDARY - EPSILON) {
+        pos.x = BOUNDARY - EPSILON;
+    } else if (pos.y < -(BOUNDARY - EPSILON)) {
+        pos.y = -(BOUNDARY - EPSILON);
+    } else if (pos.y > BOUNDARY - EPSILON) {
+        pos.y = BOUNDARY - EPSILON;
+    } else if (pos.z < -(BOUNDARY - EPSILON)) {
+        pos.z = -(BOUNDARY - EPSILON);
+    } else if (pos.z > BOUNDARY - EPSILON) {
+        pos.z = BOUNDARY - EPSILON;
+    }
+}
+
+void Particle::print() {
+    printf("position : %f, %f, %f\nacceleration : %f, %f, %f\n", pos.x, pos.y, pos.z, acc.x, acc.y, acc.z);
+    printf("density : %f, mass : %f\n", density, mass);
 }
 
 #endif
