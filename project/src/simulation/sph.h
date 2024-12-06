@@ -6,20 +6,12 @@
 
 #include "particle.h"
 
-constexpr float power(float x, int n) {
-    float res = 1;
-    for (int i = 0; i < n; i++) {
-        res *= x;
-    }
-    return res;
-}
-
 /* Kernel Function Coefficient */
 constexpr float KERNEL_DISTANCE = 1;
-constexpr float SQR_KERNEL_DISTANCE = power(KERNEL_DISTANCE, 2);
-constexpr float KERNEL_FACTOR = 315 / 64 / AI_MATH_PI / power(KERNEL_DISTANCE, 9);
-constexpr float GRAD_FACTOR = -45 / AI_MATH_PI / power(KERNEL_DISTANCE, 6);
-constexpr float LAP_FACTOR = 45 / AI_MATH_PI / power(KERNEL_DISTANCE, 6);
+constexpr float SQR_KERNEL_DISTANCE = KERNEL_DISTANCE;
+constexpr float KERNEL_FACTOR = 315 / 64 / AI_MATH_PI / KERNEL_DISTANCE;
+constexpr float GRAD_FACTOR = -45 / AI_MATH_PI / KERNEL_DISTANCE;
+constexpr float LAP_FACTOR = 45 / AI_MATH_PI / KERNEL_DISTANCE;
 
 using namespace std;
 
@@ -46,6 +38,15 @@ public:
         computeProperties();
         computeAcceleration();
         for (auto &p : particles) {
+            p.update(dt);
+        }
+    }
+    
+    void testUpdate(float dt) {
+        for (auto& p : particles) {
+            p.acc = glm::vec3(0, GRAVITY, 0);
+        }
+        for (auto& p : particles) {
             p.update(dt);
         }
     }
@@ -95,9 +96,10 @@ void SPH::computeProperties() {
             glm::vec3 r = p.pos - p_.pos;
             //printf("%f, %f, %f\n", r.x, r.y, r.z);
             p.density += p.mass * poly6Kernel(r);
-            //p.print();
+            //printf("%f\n", poly6Kernel(r));
         }
         p.pressure = WATER_GAS_CONSTANT * (p.density - WATER_DENSITY);
+        //printf("%f\n", p.pressure);
     }
 }
 
@@ -112,18 +114,26 @@ void SPH::computeAcceleration() {
         for (auto& p_ : particles) {
             glm::vec3 r = p.pos - p_.pos;
             acc_p_ = poly6Grad(r);
-            if (p.boundary) acc_p_ *= (p_.mass / p.density) * MAX(0.0, p.pressure);
+            if (p.boundary) {
+                printf("BOUNDARY\n");
+                acc_p_ *= (p_.mass / p.density) * MAX(0.0, p.pressure);
+            }
             else acc_p_ *= ((p_.mass / p_.density) * (p.pressure + p_.pressure)) / 2;
             acc_pressure += acc_p_;
-
+            //printf("%f\n", p.pressure);
+            //printf("%f, %f, %f\n", acc_p_.x, acc_p_.y, acc_p_.z);
             acc_v_ = p.vel - p_.vel;
-            if (p.boundary) acc_v_ *= (p_.mass / p.density) * poly6Lap(r);
+            if (p.boundary) {
+                printf("BOUDNARY\n");
+                acc_v_ *= (p_.mass / p.density) * poly6Lap(r);
+            }
             else acc_v_ *= (p_.mass / p_.density) * poly6Lap(r);
             acc_viscosity += acc_v_;
         }
+        //p.print();
         p.acc = -(p.acc + acc_pressure) / p.density;
         p.acc = -WATER_VISCOSITY * (p.acc + acc_viscosity);
-        //p.print();
+        p.print();
     }
 }
 

@@ -28,18 +28,23 @@ public:
         for (int x = -3; x <= 3; x++) {
             for (int y = -3; y<= 3; y++) {
                 for (int z = -3; z<= 3; z++) {
-                    Particle p((float)x, (float)y, (float)z, 1, true);
+                    Particle p((float)x, (float)y, (float)z, 1, false);
                     particles.push_back(p);
                 }
             }
         }
         simulator.init();
         setupFluid();
+        //simulator.update(0.1);
+        /*for (auto& p : particles) {
+            p.print();
+        }*/
     }
     
     void update(float deltaTime)
     {
         simulator.update(deltaTime);
+        //simulator.testUpdate(deltaTime);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, particles.size() * sizeof(Particle), &particles[0], GL_DYNAMIC_DRAW);  
     }

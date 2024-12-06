@@ -12,7 +12,7 @@ constexpr float WATER_PARTICLE_RADIUS = 0.1;
 constexpr float GRAVITY = -9.8;
 
 /* Boundary Condition */
-constexpr float BOUNDARY = 10;
+constexpr float BOUNDARY = 5;
 constexpr float EPSILON = 0.1;
 
 using namespace std;
