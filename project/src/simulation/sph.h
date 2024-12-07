@@ -62,6 +62,7 @@ private:
 float SPH::poly6Kernel(glm::vec3 r) {
     float len = glm::length(r);
     if (KERNEL_DISTANCE <= len) return 0.0;
+    //if (len == 0.0) return 0.0;
     float sqrd = pow(len, 2);
     return KERNEL_FACTOR * pow(SQR_KERNEL_DISTANCE - sqrd, 3);
 }
@@ -69,6 +70,7 @@ float SPH::poly6Kernel(glm::vec3 r) {
 glm::vec3 SPH::poly6Grad(glm::vec3 r) {
     float len = glm::length(r);
     if (KERNEL_DISTANCE <= len) return glm::vec3(0, 0, 0);
+    if (len == 0.0) return glm::vec3(0, 0, 0);
     float val = pow(KERNEL_DISTANCE - len, 2) / len;
     return val * r;
 }
@@ -76,6 +78,7 @@ glm::vec3 SPH::poly6Grad(glm::vec3 r) {
 float SPH::poly6Lap(glm::vec3 r) {
     float len = r.length();
     if (KERNEL_DISTANCE <= len) return 0.0;
+    if (len == 0.0) return 0.0;
     return LAP_FACTOR * (KERNEL_DISTANCE - len);
 }
 
@@ -114,14 +117,18 @@ void SPH::computeAcceleration() {
         for (auto& p_ : particles) {
             glm::vec3 r = p.pos - p_.pos;
             acc_p_ = poly6Grad(r);
+            //printf("%f, %f, %f\n", acc_p_.x, acc_p_.y, acc_p_.z);
             if (p.boundary) {
                 printf("BOUNDARY\n");
                 acc_p_ *= (p_.mass / p.density) * MAX(0.0, p.pressure);
             }
             else acc_p_ *= ((p_.mass / p_.density) * (p.pressure + p_.pressure)) / 2;
             acc_pressure += acc_p_;
-            //printf("%f\n", p.pressure);
-            //printf("%f, %f, %f\n", acc_p_.x, acc_p_.y, acc_p_.z);
+            /*printf("%f\n", p.density);
+            printf("%f\n", p.pressure);
+            printf("%f\n", p_.pressure);
+            printf("%f\n", p_.mass);
+            printf("%f, %f, %f\n", acc_p_.x, acc_p_.y, acc_p_.z);*/
             acc_v_ = p.vel - p_.vel;
             if (p.boundary) {
                 printf("BOUDNARY\n");
@@ -130,10 +137,13 @@ void SPH::computeAcceleration() {
             else acc_v_ *= (p_.mass / p_.density) * poly6Lap(r);
             acc_viscosity += acc_v_;
         }
+        
         //p.print();
+        //printf("%f\n", acc_pressure);
+        //printf("%f, %f, %f\n", p.acc.x, p.acc.y, p.acc.z);
         p.acc = -(p.acc + acc_pressure) / p.density;
         p.acc = -WATER_VISCOSITY * (p.acc + acc_viscosity);
-        p.print();
+        //p.print();
     }
 }
 

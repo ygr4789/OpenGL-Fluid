@@ -43,8 +43,8 @@ public:
     
     void update(float deltaTime)
     {
+        //simulator.update(deltaTime);
         simulator.update(deltaTime);
-        //simulator.testUpdate(deltaTime);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, particles.size() * sizeof(Particle), &particles[0], GL_DYNAMIC_DRAW);  
     }
