@@ -192,7 +192,8 @@ int main()
     fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(1.0, 0.0, 0.0));
     fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
     fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
-    fluidSurfaceShader.setFloat("normalReflectance", 0.3);
+    fluidSurfaceShader.setFloat("fluidMaterial.reflectance", 0.3);
+    fluidSurfaceShader.setFloat("fluidMaterial.absorbance", 0.1);
     fluidSurfaceShader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
     fluidSurfaceShader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
     

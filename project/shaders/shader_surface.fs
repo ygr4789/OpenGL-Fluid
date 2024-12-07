@@ -14,6 +14,8 @@ struct FluidMaterial {
     vec3 color;
     float specular;
     float shininess;
+    float absorbance;
+    float reflectance;
 };
 
 uniform samplerCube skybox;
@@ -24,7 +26,6 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float texelSizeU;
 uniform float texelSizeV;
-uniform float normalReflectance;
 
 uniform Light light;
 uniform FluidMaterial fluidMaterial;
@@ -32,16 +33,15 @@ uniform FluidMaterial fluidMaterial;
 vec3 uvToView(vec2 uv);
 vec3 blinnPhong(vec3 N, vec3 V);
 float schlickFresnel(vec3 N, vec3 V);
+float beersLawOpacity(float d);
 vec3 cubemapReflection(vec3 N, vec3 I);
 
 void main()
 {
     vec2 texCoords = fs_in.TexCoords;
     float depth = texture(smoothedDepthImage, texCoords).r;
-    vec4 thickness = texture(thicknessImage, texCoords);
+    float thickness = texture(thicknessImage, texCoords).r;
     if (depth == 1.0) discard;
-    gl_FragColor = thickness;
-    return;
     
     vec3 viewPos = uvToView(texCoords);
     
@@ -63,7 +63,10 @@ void main()
     vec3 phong = blinnPhong(N, -I);
     vec3 reflection = cubemapReflection(N, I);
     vec3 color = reflection * fresnel + phong;
-    gl_FragColor = vec4(color, 1.0);
+    
+    float alpha = beersLawOpacity(thickness);
+    
+    gl_FragColor = vec4(color, alpha);
 }
 
 vec3 uvToView(vec2 uv) 
@@ -108,8 +111,14 @@ float schlickFresnel(vec3 N, vec3 V)
 {
     // V: direction of fragPos to eyePos
     float cosTh = dot(N, V);
-    float R0 = normalReflectance;
+    float R0 = fluidMaterial.reflectance;
     return R0 + (1.0-R0) * pow(1.0-cosTh, 5);
+}
+
+float beersLawOpacity(float d)
+{
+    float decay = exp(-(fluidMaterial.absorbance * d));
+    return 1.0 - decay;
 }
 
 vec3 cubemapReflection(vec3 N, vec3 I)
