@@ -36,6 +36,7 @@ const unsigned int SCR_HEIGHT = 600;
 const unsigned int SHADOW_WIDTH = 2048;
 const unsigned int SHADOW_HEIGHT = 2048;
 const float planeSize = 15.f;
+const float sphereRadius = 0.7f;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
@@ -103,7 +104,8 @@ int main()
     // build and compile our shader program
     // ------------------------------------
     Shader lightingShader("../shaders/shader_lighting.vs", "../shaders/shader_lighting.fs");
-    Shader fluidShader("../shaders/shader_fluid.vs", "../shaders/shader_fluid.fs");
+    Shader depthRenderShader("../shaders/shader_depth.vs", "../shaders/shader_depth.fs");
+    Shader fluidSurfaceShader("../shaders/shader_surface.vs", "../shaders/shader_surface.fs");
     Shader skyboxShader("../shaders/shader_skybox.vs", "../shaders/shader_skybox.fs");
 
     // define models
@@ -136,10 +138,19 @@ int main()
         "../resources/skybox/front.jpg",
         "../resources/skybox/back.jpg"
     };
+    
     CubemapTexture skyboxTexture = CubemapTexture(faces);
     unsigned int VAOskybox, VBOskybox;
     getPositionVAO(skybox_positions, sizeof(skybox_positions), VAOskybox, VBOskybox);
-
+    
+    // depth map
+    DepthMapTexture depth(SCR_WIDTH, SCR_HEIGHT);
+    unsigned int VAOquad, VBOquad;
+    getPositionTexVAO2D(quad_vertices, sizeof(quad_vertices), VAOquad ,VBOquad);
+    
+    // fluid
+    Fluid fluid;
+    
     // set uniform values
     lightingShader.use();
     lightingShader.setInt("material.diffuseSampler", 0);
@@ -148,12 +159,13 @@ int main()
     lightingShader.setFloat("material.shininess", 64.f);    // set shininess to constant value.
 
     skyboxShader.use();
-    skyboxShader.setInt("skyboxTexture1", 0);
+    skyboxShader.setInt("skyboxTexture", 0);
 
+    fluidSurfaceShader.use();
+    fluidSurfaceShader.setInt("screenTexture", 0);
+    
     DirectionalLight sun(30.0f, 30.0f, glm::vec3(0.8f));
     
-    // fluid
-    Fluid fluid;
     
     float oldTime = 0;
     while (!glfwWindowShouldClose(window))// render loop
@@ -202,23 +214,35 @@ int main()
             }
         }
         
-        // use fluid Shader
-        fluidShader.use();
-        fluidShader.setMat4("view", view);
-        fluidShader.setMat4("projection", projection);
-        fluidShader.setInt("screenHeight", SCR_HEIGHT);
-        fluidShader.setFloat("fovy", glm::radians(camera.Zoom));
-        fluidShader.setFloat("sphereRadius", 0.7f);
-        fluidShader.setVec3("light.dir", sun.lightDir);
-        fluidShader.setVec3("light.color", sun.lightColor);
-        
-        // render fluid particles
+        // use depth render Shader
+        depthRenderShader.use();
+        depthRenderShader.setMat4("view", view);
+        depthRenderShader.setMat4("projection", projection);
+        depthRenderShader.setInt("screenHeight", SCR_HEIGHT);
+        depthRenderShader.setFloat("fovy", glm::radians(camera.Zoom));
+        depthRenderShader.setFloat("sphereRadius", sphereRadius);
+        depthRenderShader.setVec3("light.dir", sun.lightDir);
+        depthRenderShader.setVec3("light.color", sun.lightColor);
         fluid.update(deltaTime);
+        
+        // render depth image
+        glBindFramebuffer(GL_FRAMEBUFFER, depth.depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
         glEnable(GL_POINT_SPRITE);
         glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
         glPointParameterf(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         glBindVertexArray(fluid.VAO);
         glDrawArrays(GL_POINTS, 0, fluid.particles.size());
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
+        // use fluid surface render Shader
+        fluidSurfaceShader.use();
+        
+        // render depth image on screen
+        glBindVertexArray(VAOquad);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depth.ID);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         
         // use skybox Shader
         skyboxShader.use();
