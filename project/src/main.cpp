@@ -37,8 +37,8 @@ const unsigned int SHADOW_WIDTH = 2048;
 const unsigned int SHADOW_HEIGHT = 2048;
 const float planeSize = 15.f;
 const float sphereRadius = 0.7f;
-const float sigmaS = 5.0f; // bilateral filtering location parameter
-const float sigmaL = 5.0f; // bilateral filtering depth parameter
+const float sigmaS = 7.0f; // bilateral filtering location parameter
+const float sigmaL = 3.0f; // bilateral filtering depth parameter
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
@@ -171,8 +171,8 @@ int main()
 
     depthSmoothingshader.use();
     depthSmoothingshader.setInt("depthImage", 0);
-    depthSmoothingshader.setFloat("sigmaS", 5.0);
-    depthSmoothingshader.setFloat("sigmaL", 5.0);
+    depthSmoothingshader.setFloat("sigmaS", sigmaS);
+    depthSmoothingshader.setFloat("sigmaL", sigmaL);
     depthSmoothingshader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
     depthSmoothingshader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
 
@@ -182,6 +182,7 @@ int main()
     fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(1.0, 0.0, 0.0));
     fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
     fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
+    fluidSurfaceShader.setFloat("normalReflectance", 0.3);
     fluidSurfaceShader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
     fluidSurfaceShader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
     

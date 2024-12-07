@@ -23,12 +23,14 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float texelSizeU;
 uniform float texelSizeV;
+uniform float normalReflectance;
 
 uniform Light light;
 uniform FluidMaterial fluidMaterial;
 
 vec3 uvToView(vec2 uv);
-vec3 blinnPhong(vec3 N, vec3 I);
+vec3 blinnPhong(vec3 N, vec3 V);
+float schlickFresnel(vec3 N, vec3 V);
 vec3 cubemapReflection(vec3 N, vec3 I);
 
 void main()
@@ -53,8 +55,11 @@ void main()
     vec3 I = vec3(inverse(view) * vec4(viewPos, 0.0));
     I = normalize(I);
     
-    // gl_FragColor = vec4(blinnPhong(N, -I), 1.0);
-    gl_FragColor = vec4(cubemapReflection(N, I), 1.0);
+    float fresnel = schlickFresnel(N, -I);
+    vec3 phong = blinnPhong(N, -I);
+    vec3 reflection = cubemapReflection(N, I);
+    vec3 color = reflection * fresnel + phong;
+    gl_FragColor = vec4(color, 1.0);
 }
 
 vec3 uvToView(vec2 uv) 
@@ -93,6 +98,14 @@ vec3 blinnPhong(vec3 N, vec3 V)
     
     vec3 result = ambient + diffuse + specular;
     return result;
+}
+
+float schlickFresnel(vec3 N, vec3 V)
+{
+    // V: direction of fragPos to eyePos
+    float cosTh = dot(N, V);
+    float R0 = normalReflectance;
+    return R0 + (1.0-R0) * pow(1.0-cosTh, 5);
 }
 
 vec3 cubemapReflection(vec3 N, vec3 I)
