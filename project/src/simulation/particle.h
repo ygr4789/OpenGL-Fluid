@@ -45,19 +45,18 @@ Particle::Particle(float x = 0, float y = 0, float z = 0, float m = 0, bool b = 
 void Particle::update(float dt) {
     vel += (acc * dt);
     pos += (vel * dt);
-    if (pos.x < -(BOUNDARY - EPSILON)) {
+    if (pos.x < -(BOUNDARY - EPSILON))
         pos.x = -(BOUNDARY - EPSILON);
-    } else if (pos.x > BOUNDARY - EPSILON) {
+    if (pos.x > BOUNDARY - EPSILON)
         pos.x = BOUNDARY - EPSILON;
-    } else if (pos.y < -(BOUNDARY - EPSILON)) {
+    if (pos.y < -(BOUNDARY - EPSILON))
         pos.y = -(BOUNDARY - EPSILON);
-    } else if (pos.y > BOUNDARY - EPSILON) {
+    if (pos.y > BOUNDARY - EPSILON)
         pos.y = BOUNDARY - EPSILON;
-    } else if (pos.z < -(BOUNDARY - EPSILON)) {
+    if (pos.z < -(BOUNDARY - EPSILON))
         pos.z = -(BOUNDARY - EPSILON);
-    } else if (pos.z > BOUNDARY - EPSILON) {
+    if (pos.z > BOUNDARY - EPSILON)
         pos.z = BOUNDARY - EPSILON;
-    }
 }
 
 void Particle::print() {

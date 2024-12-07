@@ -68,6 +68,7 @@ float SPH::poly6Kernel(glm::vec3 r) {
 
 glm::vec3 SPH::poly6Grad(glm::vec3 r) {
     float len = glm::length(r);
+    if (len == 0) return glm::vec3(0);
     if (KERNEL_DISTANCE <= len) return glm::vec3(0, 0, 0);
     float val = pow(KERNEL_DISTANCE - len, 2) / len;
     return val * r;
@@ -95,7 +96,7 @@ void SPH::computeProperties() {
         for (auto& p_ : particles) {
             glm::vec3 r = p.pos - p_.pos;
             //printf("%f, %f, %f\n", r.x, r.y, r.z);
-            p.density += p.mass * poly6Kernel(r);
+            p.density += p_.mass * poly6Kernel(r);
             //printf("%f\n", poly6Kernel(r));
         }
         p.pressure = WATER_GAS_CONSTANT * (p.density - WATER_DENSITY);
@@ -130,10 +131,9 @@ void SPH::computeAcceleration() {
             else acc_v_ *= (p_.mass / p_.density) * poly6Lap(r);
             acc_viscosity += acc_v_;
         }
-        //p.print();
-        p.acc = -(p.acc + acc_pressure) / p.density;
-        p.acc = -WATER_VISCOSITY * (p.acc + acc_viscosity);
-        p.print();
+        
+        p.acc -= acc_pressure / p.density;
+        p.acc -= WATER_VISCOSITY * acc_viscosity;
     }
 }
 
