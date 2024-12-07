@@ -5,13 +5,7 @@
 #include <vector>
 
 #include "particle.h"
-
-/* Kernel Function Coefficient */
-constexpr float KERNEL_DISTANCE = 1;
-constexpr float SQR_KERNEL_DISTANCE = KERNEL_DISTANCE;
-constexpr float KERNEL_FACTOR = 315 / 64 / AI_MATH_PI / KERNEL_DISTANCE;
-constexpr float GRAD_FACTOR = -45 / AI_MATH_PI / KERNEL_DISTANCE;
-constexpr float LAP_FACTOR = 45 / AI_MATH_PI / KERNEL_DISTANCE;
+#include "consts.h"
 
 using namespace std;
 
@@ -51,41 +45,17 @@ public:
         }
     }
 private:
-    float poly6Kernel(glm::vec3 r);
-    glm::vec3 poly6Grad(glm::vec3 r);
-    float poly6Lap(glm::vec3 r);
     void computeDensity();
     void computeProperties();
     void computeAcceleration();
 };
 
-float SPH::poly6Kernel(glm::vec3 r) {
-    float len = glm::length(r);
-    if (KERNEL_DISTANCE <= len) return 0.0;
-    float sqrd = pow(len, 2);
-    return KERNEL_FACTOR * pow(SQR_KERNEL_DISTANCE - sqrd, 3);
-}
-
-glm::vec3 SPH::poly6Grad(glm::vec3 r) {
-    float len = glm::length(r);
-    if (len == 0) return glm::vec3(0);
-    if (KERNEL_DISTANCE <= len) return glm::vec3(0, 0, 0);
-    float val = pow(KERNEL_DISTANCE - len, 2) / len;
-    return val * r;
-}
-
-float SPH::poly6Lap(glm::vec3 r) {
-    float len = r.length();
-    if (KERNEL_DISTANCE <= len) return 0.0;
-    return LAP_FACTOR * (KERNEL_DISTANCE - len);
-}
-
 void SPH::computeDensity() {
     for (auto& p : particles) {
         p.density = 0;
         for (auto& p_ : particles) {
-            glm::vec3 r = p.pos - p_.pos;
-            p.density += p.mass * poly6Kernel(r);
+            glm::vec3 r = p_.pos - p.pos;
+            p.density += p.mass * Consts::poly6Kernel(r);
         }
     }
 }
@@ -94,13 +64,10 @@ void SPH::computeProperties() {
     for (auto& p : particles) {
         p.density = 0;
         for (auto& p_ : particles) {
-            glm::vec3 r = p.pos - p_.pos;
-            //printf("%f, %f, %f\n", r.x, r.y, r.z);
-            p.density += p_.mass * poly6Kernel(r);
-            //printf("%f\n", poly6Kernel(r));
+            glm::vec3 r = p_.pos - p.pos;
+            p.density += p_.mass * Consts::poly6Kernel(r);
         }
         p.pressure = WATER_GAS_CONSTANT * (p.density - WATER_DENSITY);
-        //printf("%f\n", p.pressure);
     }
 }
 
@@ -109,31 +76,15 @@ void SPH::computeAcceleration() {
         p.acc = glm::vec3(0, GRAVITY, 0);
         glm::vec3 acc_pressure = glm::vec3(0, 0, 0);
         glm::vec3 acc_viscosity = glm::vec3(0, 0, 0);
-        glm::vec3 acc_p_ = glm::vec3(0, 0, 0);
-        glm::vec3 acc_v_ = glm::vec3(0, 0, 0);
-        //p.print();
+        
         for (auto& p_ : particles) {
-            glm::vec3 r = p.pos - p_.pos;
-            acc_p_ = poly6Grad(r);
-            if (p.boundary) {
-                printf("BOUNDARY\n");
-                acc_p_ *= (p_.mass / p.density) * MAX(0.0, p.pressure);
-            }
-            else acc_p_ *= ((p_.mass / p_.density) * (p.pressure + p_.pressure)) / 2;
-            acc_pressure += acc_p_;
-            //printf("%f\n", p.pressure);
-            //printf("%f, %f, %f\n", acc_p_.x, acc_p_.y, acc_p_.z);
-            acc_v_ = p.vel - p_.vel;
-            if (p.boundary) {
-                printf("BOUDNARY\n");
-                acc_v_ *= (p_.mass / p.density) * poly6Lap(r);
-            }
-            else acc_v_ *= (p_.mass / p_.density) * poly6Lap(r);
-            acc_viscosity += acc_v_;
+            glm::vec3 r = p_.pos - p.pos;
+            acc_pressure += Consts::poly6Grad(r) * (p_.mass/p_.density) * ((p.pressure+p_.pressure)/2);
+            acc_viscosity += Consts::poly6Lap(r) * (p_.mass/p_.density) * (p_.vel-p.vel);
         }
         
         p.acc -= acc_pressure / p.density;
-        p.acc -= WATER_VISCOSITY * acc_viscosity;
+        p.acc += acc_viscosity * WATER_VISCOSITY;
     }
 }
 

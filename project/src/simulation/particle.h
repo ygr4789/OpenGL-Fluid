@@ -5,11 +5,9 @@
 #include <vector>
 
 /* Properties of Water */
-constexpr float WATER_DENSITY = 0.998;
-//constexpr float WATER_GAS_CONSTANT = 2000;
-constexpr float WATER_GAS_CONSTANT = 20;
+constexpr float WATER_DENSITY = 300;
+constexpr float WATER_GAS_CONSTANT = 10;
 constexpr float WATER_VISCOSITY = 0.5;
-constexpr float WATER_PARTICLE_RADIUS = 0.1;
 constexpr float GRAVITY = -9.8;
 
 /* Boundary Condition */

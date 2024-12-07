@@ -266,7 +266,8 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         // update simulation
-        for (int i=0; i<10; i++) fluid.update(0.001);
+        // fluid.update(deltaTime);
+        fluid.update(0.01);
         
         // point rendering configuration
         glEnable(GL_POINT_SPRITE);
