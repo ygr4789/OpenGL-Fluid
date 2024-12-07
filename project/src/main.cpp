@@ -177,7 +177,8 @@ int main()
     depthSmoothingshader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
 
     fluidSurfaceShader.use();
-    fluidSurfaceShader.setInt("smoothedDepthImage", 0);
+    fluidSurfaceShader.setInt("skyboxTexture", 0);
+    fluidSurfaceShader.setInt("smoothedDepthImage", 1);
     fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(1.0, 0.0, 0.0));
     fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
     fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
@@ -277,6 +278,8 @@ int main()
         // render fluid surface on screen
         glBindVertexArray(VAOquad);
         glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture.textureID);
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, smoothedDepth.ID);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
