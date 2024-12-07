@@ -268,8 +268,10 @@ int main()
         fluidSurfaceShader.use();
         fluidSurfaceShader.setMat4("view", view);
         fluidSurfaceShader.setMat4("projection", projection);
+        fluidSurfaceShader.setVec3("light.dir", sun.lightDir);
+        fluidSurfaceShader.setVec3("light.color", sun.lightColor);
         
-        // render depth image on screen
+        // render fluid surface on screen
         glBindVertexArray(VAOquad);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, smoothedDepth.ID);
