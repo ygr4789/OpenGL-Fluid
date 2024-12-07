@@ -79,36 +79,29 @@ public:
 	}
 };
 
-class CascadedDepthMapTexture 
+class ColorMapTexture 
 {
 public:
 	unsigned int ID;
-	unsigned int depthMapFBO;
+	unsigned int colorMapFBO;
 	int width;
 	int height;
 
-	CascadedDepthMapTexture(int shadow_width, int shadow_height, int level)
+	ColorMapTexture(int frame_width, int frame_height) 
 	{
-		width = shadow_width;
-		height = shadow_height;
-        
-        glGenFramebuffers(1, &depthMapFBO);
-        glGenTextures(1, &ID);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, ID);
-        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, width, height, level, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-        constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, bordercolor);
-		// attach depth texture as FBO's depth buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, ID, 0);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
+		width = frame_width;
+		height = frame_height;
+		glGenFramebuffers(1, &colorMapFBO);
+		glGenTextures(1, &ID);
+		glBindTexture(GL_TEXTURE_2D, ID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		// attach color texture as FBO's depth buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, colorMapFBO);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ID, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 };
+
 #endif

@@ -39,6 +39,7 @@ const float planeSize = 15.f;
 const float sphereRadius = 0.7f;
 const float sigmaS = 7.0f; // bilateral filtering location parameter
 const float sigmaL = 3.0f; // bilateral filtering depth parameter
+const float fillRate = 0.2f; // fill-rate for generating thickness
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
@@ -102,11 +103,13 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
 
     // build and compile our shader program
     // ------------------------------------
     Shader lightingShader("../shaders/shader_lighting.vs", "../shaders/shader_lighting.fs");
     Shader depthRenderShader("../shaders/shader_depth.vs", "../shaders/shader_depth.fs");
+    Shader thicknessShader("../shaders/shader_thickness.vs", "../shaders/shader_thickness.fs");
     Shader depthSmoothingshader("../shaders/shader_bilateral.vs", "../shaders/shader_bilateral.fs");
     Shader fluidSurfaceShader("../shaders/shader_surface.vs", "../shaders/shader_surface.fs");
     Shader skyboxShader("../shaders/shader_skybox.vs", "../shaders/shader_skybox.fs");
@@ -149,6 +152,8 @@ int main()
     // depth map
     DepthMapTexture depth(SCR_WIDTH, SCR_HEIGHT);
     DepthMapTexture smoothedDepth(SCR_WIDTH, SCR_HEIGHT);
+    ColorMapTexture thickness(SCR_WIDTH, SCR_HEIGHT);
+    ColorMapTexture background(SCR_WIDTH, SCR_HEIGHT);
     unsigned int VAOquad, VBOquad;
     getPositionTexVAO2D(quad_vertices, sizeof(quad_vertices), VAOquad ,VBOquad);
     
@@ -168,6 +173,11 @@ int main()
     depthRenderShader.use();
     depthRenderShader.setInt("screenHeight", SCR_HEIGHT);
     depthRenderShader.setFloat("sphereRadius", sphereRadius);
+    
+    thicknessShader.use();
+    thicknessShader.setInt("screenHeight", SCR_HEIGHT);
+    thicknessShader.setFloat("sphereRadius", sphereRadius);
+    thicknessShader.setFloat("fillRate", fillRate);
 
     depthSmoothingshader.use();
     depthSmoothingshader.setInt("depthImage", 0);
@@ -179,10 +189,13 @@ int main()
     fluidSurfaceShader.use();
     fluidSurfaceShader.setInt("skyboxTexture", 0);
     fluidSurfaceShader.setInt("smoothedDepthImage", 1);
-    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(1.0, 0.0, 0.0));
+    fluidSurfaceShader.setInt("thicknessImage", 2);
+    fluidSurfaceShader.setInt("backgroundImage", 3);
+    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(0.0, 0.3, 1.0));
     fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
     fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
-    fluidSurfaceShader.setFloat("normalReflectance", 0.3);
+    fluidSurfaceShader.setFloat("fluidMaterial.reflectance", 0.3);
+    fluidSurfaceShader.setFloat("fluidMaterial.absorbance", 10.0);
     fluidSurfaceShader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
     fluidSurfaceShader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
     
@@ -220,10 +233,12 @@ int main()
         lightingShader.setVec3("light.dir", sun.lightDir);
         lightingShader.setVec3("light.color", sun.lightColor);
         
-        // render objects in the scene
-            // framebuffer : default frame buffer(0)
-            // shader : shader_lighting.fs/vs
+        // render objects in background framebuffer
+        // glBindFramebuffer(GL_FRAMEBUFFER, background.colorMapFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        // render objects
         for (auto const& me : scene.entities) {
             Model* model = me.first;
             model->bind();
@@ -235,9 +250,28 @@ int main()
                 glDrawElements(GL_TRIANGLES, model->mesh.indices.size(), GL_UNSIGNED_INT, 0);
             }
         }
+        // use skybox Shader
+        skyboxShader.use();
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.setMat4("view", glm::mat4(glm::mat3(camera.GetViewMatrix())));
+        skyboxShader.setMat4("projection", projection);
+
+        // render a skybox
+        glBindVertexArray(VAOskybox);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture.textureID);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        glDepthFunc(GL_LESS);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         // update simulation
-        fluid.update(deltaTime);
+        // fluid.update(deltaTime);
+        
+        // point rendering configuration
+        glEnable(GL_POINT_SPRITE);
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        glPointParameterf(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         
         // use depth render Shader
         depthRenderShader.use();
@@ -250,12 +284,30 @@ int main()
         // render depth image
         glBindFramebuffer(GL_FRAMEBUFFER, depth.depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_POINT_SPRITE);
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-        glPointParameterf(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         glBindVertexArray(fluid.VAO);
         glDrawArrays(GL_POINTS, 0, fluid.particles.size());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
+        // use thickness render Shader
+        thicknessShader.use();
+        thicknessShader.setMat4("view", view);
+        thicknessShader.setMat4("projection", projection);
+        thicknessShader.setFloat("fovy", glm::radians(camera.Zoom));
+        thicknessShader.setVec3("light.dir", sun.lightDir);
+        thicknessShader.setVec3("light.color", sun.lightColor);
+        
+        // render thickness image
+        glBindFramebuffer(GL_FRAMEBUFFER, thickness.colorMapFBO);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // additive blending
+        glDisable(GL_DEPTH_TEST);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        glBindVertexArray(fluid.VAO);
+        glDrawArrays(GL_POINTS, 0, fluid.particles.size());
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // restore to default
+        glEnable(GL_DEPTH_TEST);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         
         // use depth smoothing Shader
         depthSmoothingshader.use();
@@ -282,24 +334,12 @@ int main()
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture.textureID);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, smoothedDepth.ID);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, thickness.ID);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, background.ID);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
-        // use skybox Shader
-        skyboxShader.use();
-        glDepthFunc(GL_LEQUAL);
-        view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-        skyboxShader.setMat4("view", view);
-        skyboxShader.setMat4("projection", projection);
-
-        // render a skybox
-        glBindVertexArray(VAOskybox);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture.textureID);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        glBindVertexArray(0);
-        glDepthFunc(GL_LESS);
-
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
