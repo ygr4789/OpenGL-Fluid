@@ -42,6 +42,5 @@ void main()
     vec3 n = cross(ddx, ddy);
     n = normalize(n);
     
-    // gl_FragColor = vec4(viewPos, 1.0);
     gl_FragColor = vec4((n+1)/2, 1.0);
 }

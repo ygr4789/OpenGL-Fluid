@@ -37,6 +37,8 @@ const unsigned int SHADOW_WIDTH = 2048;
 const unsigned int SHADOW_HEIGHT = 2048;
 const float planeSize = 15.f;
 const float sphereRadius = 0.7f;
+const float sigmaS = 5.0f; // bilateral filtering location parameter
+const float sigmaL = 5.0f; // bilateral filtering depth parameter
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
@@ -105,6 +107,7 @@ int main()
     // ------------------------------------
     Shader lightingShader("../shaders/shader_lighting.vs", "../shaders/shader_lighting.fs");
     Shader depthRenderShader("../shaders/shader_depth.vs", "../shaders/shader_depth.fs");
+    Shader depthSmoothingshader("../shaders/shader_bilateral.vs", "../shaders/shader_bilateral.fs");
     Shader fluidSurfaceShader("../shaders/shader_surface.vs", "../shaders/shader_surface.fs");
     Shader skyboxShader("../shaders/shader_skybox.vs", "../shaders/shader_skybox.fs");
 
@@ -145,6 +148,7 @@ int main()
     
     // depth map
     DepthMapTexture depth(SCR_WIDTH, SCR_HEIGHT);
+    DepthMapTexture smoothedDepth(SCR_WIDTH, SCR_HEIGHT);
     unsigned int VAOquad, VBOquad;
     getPositionTexVAO2D(quad_vertices, sizeof(quad_vertices), VAOquad ,VBOquad);
     
@@ -161,8 +165,21 @@ int main()
     skyboxShader.use();
     skyboxShader.setInt("skyboxTexture", 0);
 
+    depthRenderShader.use();
+    depthRenderShader.setInt("screenHeight", SCR_HEIGHT);
+    depthRenderShader.setFloat("sphereRadius", sphereRadius);
+
+    depthSmoothingshader.use();
+    depthSmoothingshader.setInt("screenTexture", 0);
+    depthSmoothingshader.setFloat("sigmaS", 5.0);
+    depthSmoothingshader.setFloat("sigmaL", 5.0);
+    depthSmoothingshader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
+    depthSmoothingshader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
+
     fluidSurfaceShader.use();
     fluidSurfaceShader.setInt("screenTexture", 0);
+    fluidSurfaceShader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
+    fluidSurfaceShader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
     
     DirectionalLight sun(30.0f, 30.0f, glm::vec3(0.8f));
     
@@ -214,16 +231,16 @@ int main()
             }
         }
         
+        // update simulation
+        fluid.update(deltaTime);
+        
         // use depth render Shader
         depthRenderShader.use();
         depthRenderShader.setMat4("view", view);
         depthRenderShader.setMat4("projection", projection);
-        depthRenderShader.setInt("screenHeight", SCR_HEIGHT);
         depthRenderShader.setFloat("fovy", glm::radians(camera.Zoom));
-        depthRenderShader.setFloat("sphereRadius", sphereRadius);
         depthRenderShader.setVec3("light.dir", sun.lightDir);
         depthRenderShader.setVec3("light.color", sun.lightColor);
-        fluid.update(deltaTime);
         
         // render depth image
         glBindFramebuffer(GL_FRAMEBUFFER, depth.depthMapFBO);
@@ -235,17 +252,27 @@ int main()
         glDrawArrays(GL_POINTS, 0, fluid.particles.size());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
+        // use depth smoothing Shader
+        depthSmoothingshader.use();
+         
+        // render smoothed depth image
+        glBindFramebuffer(GL_FRAMEBUFFER, smoothedDepth.depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glBindVertexArray(VAOquad);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depth.ID);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
         // use fluid surface render Shader
         fluidSurfaceShader.use();
         fluidSurfaceShader.setMat4("view", view);
         fluidSurfaceShader.setMat4("projection", projection);
-        fluidSurfaceShader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
-        fluidSurfaceShader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
         
         // render depth image on screen
         glBindVertexArray(VAOquad);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, depth.ID);
+        glBindTexture(GL_TEXTURE_2D, smoothedDepth.ID);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
         // use skybox Shader
