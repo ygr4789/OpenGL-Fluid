@@ -190,7 +190,8 @@ int main()
     fluidSurfaceShader.setInt("skyboxTexture", 0);
     fluidSurfaceShader.setInt("smoothedDepthImage", 1);
     fluidSurfaceShader.setInt("thicknessImage", 2);
-    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(1.0, 0.0, 0.0));
+    fluidSurfaceShader.setInt("backgroundImage", 3);
+    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(0.0, 0.3, 1.0));
     fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
     fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
     fluidSurfaceShader.setFloat("fluidMaterial.reflectance", 0.3);
@@ -232,10 +233,12 @@ int main()
         lightingShader.setVec3("light.dir", sun.lightDir);
         lightingShader.setVec3("light.color", sun.lightColor);
         
-        // render objects in the scene
-            // framebuffer : default frame buffer(0)
-            // shader : shader_lighting.fs/vs
+        // render objects in background framebuffer
+        // glBindFramebuffer(GL_FRAMEBUFFER, background.colorMapFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        // render objects
         for (auto const& me : scene.entities) {
             Model* model = me.first;
             model->bind();
@@ -247,7 +250,6 @@ int main()
                 glDrawElements(GL_TRIANGLES, model->mesh.indices.size(), GL_UNSIGNED_INT, 0);
             }
         }
-        
         // use skybox Shader
         skyboxShader.use();
         glDepthFunc(GL_LEQUAL);
@@ -260,8 +262,8 @@ int main()
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture.textureID);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        glBindVertexArray(0);
         glDepthFunc(GL_LESS);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         // update simulation
         // fluid.update(deltaTime);
@@ -334,6 +336,8 @@ int main()
         glBindTexture(GL_TEXTURE_2D, smoothedDepth.ID);
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, thickness.ID);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, background.ID);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
