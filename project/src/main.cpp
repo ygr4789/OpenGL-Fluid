@@ -103,7 +103,7 @@ int main()
     // build and compile our shader program
     // ------------------------------------
     Shader lightingShader("../shaders/shader_lighting.vs", "../shaders/shader_lighting.fs");
-    Shader fluidshader("../shaders/shader_fluid.vs", "../shaders/shader_fluid.fs");
+    Shader fluidShader("../shaders/shader_fluid.vs", "../shaders/shader_fluid.fs");
     Shader skyboxShader("../shaders/shader_skybox.vs", "../shaders/shader_skybox.fs");
 
     // define models
@@ -203,13 +203,20 @@ int main()
         }
         
         // use fluid Shader
-        fluidshader.use();
-        fluidshader.setMat4("view", view);
-        fluidshader.setMat4("projection", projection);
+        fluidShader.use();
+        fluidShader.setMat4("view", view);
+        fluidShader.setMat4("projection", projection);
+        fluidShader.setInt("screenHeight", SCR_HEIGHT);
+        fluidShader.setFloat("fovy", glm::radians(camera.Zoom));
+        fluidShader.setFloat("sphereRadius", 0.7f);
+        fluidShader.setVec3("light.dir", sun.lightDir);
+        fluidShader.setVec3("light.color", sun.lightColor);
         
         // render fluid particles
         fluid.update(deltaTime);
-        glPointSize(10.0);
+        glEnable(GL_POINT_SPRITE);
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        glPointParameterf(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         glBindVertexArray(fluid.VAO);
         glDrawArrays(GL_POINTS, 0, fluid.particles.size());
         
