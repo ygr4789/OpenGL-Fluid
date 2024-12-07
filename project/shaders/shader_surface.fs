@@ -18,6 +18,7 @@ struct FluidMaterial {
 
 uniform samplerCube skybox;
 uniform sampler2D smoothedDepthImage;
+uniform sampler2D thicknessImage;
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -37,7 +38,10 @@ void main()
 {
     vec2 texCoords = fs_in.TexCoords;
     float depth = texture(smoothedDepthImage, texCoords).r;
+    vec4 thickness = texture(thicknessImage, texCoords);
     if (depth == 1.0) discard;
+    gl_FragColor = thickness;
+    return;
     
     vec3 viewPos = uvToView(texCoords);
     
