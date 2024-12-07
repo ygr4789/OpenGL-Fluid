@@ -153,6 +153,7 @@ int main()
     DepthMapTexture depth(SCR_WIDTH, SCR_HEIGHT);
     DepthMapTexture smoothedDepth(SCR_WIDTH, SCR_HEIGHT);
     ColorMapTexture thickness(SCR_WIDTH, SCR_HEIGHT);
+    ColorMapTexture background(SCR_WIDTH, SCR_HEIGHT);
     unsigned int VAOquad, VBOquad;
     getPositionTexVAO2D(quad_vertices, sizeof(quad_vertices), VAOquad ,VBOquad);
     
@@ -193,7 +194,7 @@ int main()
     fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
     fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
     fluidSurfaceShader.setFloat("fluidMaterial.reflectance", 0.3);
-    fluidSurfaceShader.setFloat("fluidMaterial.absorbance", 0.1);
+    fluidSurfaceShader.setFloat("fluidMaterial.absorbance", 10.0);
     fluidSurfaceShader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
     fluidSurfaceShader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
     
@@ -246,6 +247,21 @@ int main()
                 glDrawElements(GL_TRIANGLES, model->mesh.indices.size(), GL_UNSIGNED_INT, 0);
             }
         }
+        
+        // use skybox Shader
+        skyboxShader.use();
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.setMat4("view", glm::mat4(glm::mat3(camera.GetViewMatrix())));
+        skyboxShader.setMat4("projection", projection);
+
+        // render a skybox
+        glBindVertexArray(VAOskybox);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture.textureID);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS);
         
         // update simulation
         // fluid.update(deltaTime);
@@ -320,22 +336,6 @@ int main()
         glBindTexture(GL_TEXTURE_2D, thickness.ID);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
-        // use skybox Shader
-        skyboxShader.use();
-        glDepthFunc(GL_LEQUAL);
-        view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-        skyboxShader.setMat4("view", view);
-        skyboxShader.setMat4("projection", projection);
-
-        // render a skybox
-        glBindVertexArray(VAOskybox);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture.textureID);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        glBindVertexArray(0);
-        glDepthFunc(GL_LESS);
-
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
