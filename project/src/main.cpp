@@ -237,6 +237,10 @@ int main()
         
         // use fluid surface render Shader
         fluidSurfaceShader.use();
+        fluidSurfaceShader.setMat4("view", view);
+        fluidSurfaceShader.setMat4("projection", projection);
+        fluidSurfaceShader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
+        fluidSurfaceShader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
         
         // render depth image on screen
         glBindVertexArray(VAOquad);

@@ -24,9 +24,9 @@ void main()
     if (r2 > 1.0f) discard;
     N.z = sqrt(1.0f - r2);
     
-    vec4 PixelPos = vec4(fs_in.ViewPos + N * fs_in.SphereRadius, 1.0f);
-    vec4 ClipPos = projection * PixelPos;
-    gl_FragDepth = ClipPos.z / ClipPos.w;
+    vec4 pixelPos = vec4(fs_in.ViewPos + N * fs_in.SphereRadius, 1.0f);
+    vec4 clipPos = projection * pixelPos;
+    gl_FragDepth = clipPos.z / clipPos.w;
     
     vec3 color = vec3(0.0f, 0.0f, 1.0f);
     float diffuse = max(0.0f, dot(N, light.dir));
