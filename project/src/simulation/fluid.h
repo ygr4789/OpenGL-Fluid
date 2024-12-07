@@ -10,6 +10,8 @@
 #include "sph.h"
 
 #include <vector>
+#include <random>
+
 using namespace std;
 
 
@@ -25,10 +27,18 @@ public:
     Fluid(): simulator(particles)
     {
         // test init
-        for (int x = -3; x <= 3; x++) {
-            for (int y = -3; y<= 3; y++) {
-                for (int z = -3; z<= 3; z++) {
-                    Particle p((float)x, (float)y, (float)z, 1, false);
+        std::random_device rd;
+        std::mt19937 mt(rd());
+        std::uniform_real_distribution<float> dist(0, 1);
+        
+        for (int x = -3; x <= 3; x+= 1) {
+            for (int y = -3; y<= 3; y+= 1) {
+                for (int z = -3; z<= 3; z+= 1) {
+                    float noiseX = (dist(mt) * 1) / 1000;
+                    float noiseY = (dist(mt) * 1) / 1000;
+                    float noiseZ = (dist(mt) * 1) / 1000;
+                    
+                    Particle p((float)x + noiseX, (float)y + noiseY, (float)z + noiseZ, 1, false);
                     particles.push_back(p);
                 }
             }
