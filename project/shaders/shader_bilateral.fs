@@ -8,11 +8,11 @@ in VS_OUT {
 uniform float sigmaS;
 uniform float sigmaL;
 
-uniform sampler2D screenTexture;
+uniform sampler2D depthImage;
 
 void main()
 {
-  float depth = texture(screenTexture, fs_in.TexCoords).r;
+  float depth = texture(depthImage, fs_in.TexCoords).r;
   if (depth == 1.0) discard;
   
   float sigS = max(sigmaS, EPS);
@@ -24,12 +24,12 @@ void main()
   float sumW = 0.;
   float sumC = 0.;
   float halfSize = sigS * 2;
-  ivec2 textureSize2 = textureSize(screenTexture, 0);
+  ivec2 textureSize2 = textureSize(depthImage, 0);
 
   for (float i = -halfSize; i <= halfSize; i ++){
     for (float j = -halfSize; j <= halfSize; j ++){
       vec2 pos = vec2(i, j);
-      float offsetDepth = texture(screenTexture, fs_in.TexCoords + pos / textureSize2).r;
+      float offsetDepth = texture(depthImage, fs_in.TexCoords + pos / textureSize2).r;
       if (offsetDepth == 1.0) offsetDepth = depth;
 
       float distS = length(pos);

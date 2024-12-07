@@ -170,14 +170,17 @@ int main()
     depthRenderShader.setFloat("sphereRadius", sphereRadius);
 
     depthSmoothingshader.use();
-    depthSmoothingshader.setInt("screenTexture", 0);
+    depthSmoothingshader.setInt("depthImage", 0);
     depthSmoothingshader.setFloat("sigmaS", 5.0);
     depthSmoothingshader.setFloat("sigmaL", 5.0);
     depthSmoothingshader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
     depthSmoothingshader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
 
     fluidSurfaceShader.use();
-    fluidSurfaceShader.setInt("screenTexture", 0);
+    fluidSurfaceShader.setInt("smoothedDepthImage", 0);
+    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(1.0, 0.0, 0.0));
+    fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
+    fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
     fluidSurfaceShader.setFloat("texelSizeU", 2.0 / (float)SCR_WIDTH);
     fluidSurfaceShader.setFloat("texelSizeV", 2.0 / (float)SCR_HEIGHT);
     
