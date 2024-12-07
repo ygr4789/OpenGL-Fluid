@@ -31,24 +31,21 @@ public:
         std::mt19937 mt(rd());
         std::uniform_real_distribution<float> dist(0, 1);
         
-        for (int x = -3; x <= 3; x+= 1) {
-            for (int y = -3; y<= 3; y+= 1) {
-                for (int z = -3; z<= 3; z+= 1) {
-                    float noiseX = (dist(mt) * 1) / 1000;
-                    float noiseY = (dist(mt) * 1) / 1000;
-                    float noiseZ = (dist(mt) * 1) / 1000;
+        const float resolution = 1.0;
+        for (float x = -3; x <= 3; x+= resolution) {
+            for (float y = -3; y<= 3; y+= resolution) {
+                for (float z = -3; z<= 3; z+= resolution) {
+                    float noiseX = (dist(mt) * resolution) / 10;
+                    float noiseY = (dist(mt) * resolution) / 10;
+                    float noiseZ = (dist(mt) * resolution) / 10;
                     
-                    Particle p((float)x + noiseX, (float)y + noiseY, (float)z + noiseZ, 1, false);
+                    Particle p(x + noiseX, y + noiseY, z + noiseZ, 1, false);
                     particles.push_back(p);
                 }
             }
         }
         simulator.init();
         setupFluid();
-        //simulator.update(0.1);
-        /*for (auto& p : particles) {
-            p.print();
-        }*/
     }
     
     void update(float deltaTime)
