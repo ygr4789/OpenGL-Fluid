@@ -31,10 +31,11 @@ public:
         std::mt19937 mt(rd());
         std::uniform_real_distribution<float> dist(0, 1);
         
-        const float resolution = 1.0;
-        for (float x = -3; x <= 3; x+= resolution) {
-            for (float y = -3; y<= 3; y+= resolution) {
-                for (float z = -3; z<= 3; z+= resolution) {
+        const float resolution = 1;
+        const float initialSize = 7;
+        for (float x = -initialSize/2; x <= initialSize/2; x+= resolution) {
+            for (float y = -initialSize/2; y<= initialSize/2; y+= resolution) {
+                for (float z = -initialSize/2; z<= initialSize/2; z+= resolution) {
                     float noiseX = (dist(mt) * resolution) / 10;
                     float noiseY = (dist(mt) * resolution) / 10;
                     float noiseZ = (dist(mt) * resolution) / 10;

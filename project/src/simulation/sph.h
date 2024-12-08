@@ -18,12 +18,13 @@ public:
     void init() {
         computeDensity();
         float max_density = 0.0;
-        for (auto p : particles) {
+        for (auto &p : particles) {
             max_density = max(max_density, p.density);
         }
-        float mass_particle = WATER_DENSITY / max_density;
-        for (auto p : particles) {
-            p.mass = mass_particle;
+        const float WATER_PARTICLE_MASS = WATER_DENSITY / max_density;
+        printf("%f\n", WATER_PARTICLE_MASS);
+        for (auto &p : particles) {
+            p.mass = WATER_PARTICLE_MASS;
         }
         computeProperties();
     }
@@ -35,15 +36,7 @@ public:
             p.update(dt);
         }
     }
-    
-    void testUpdate(float dt) {
-        for (auto& p : particles) {
-            p.acc = glm::vec3(0, GRAVITY, 0);
-        }
-        for (auto& p : particles) {
-            p.update(dt);
-        }
-    }
+
 private:
     void computeDensity();
     void computeProperties();
@@ -51,20 +44,20 @@ private:
 };
 
 void SPH::computeDensity() {
-    for (auto& p : particles) {
+    for (auto &p : particles) {
         p.density = 0;
-        for (auto& p_ : particles) {
-            glm::vec3 r = p_.pos - p.pos;
+        for (const auto &p_ : particles) {
+            glm::vec3 r = p.pos - p_.pos;
             p.density += p.mass * Consts::poly6Kernel(r);
         }
     }
 }
 
 void SPH::computeProperties() {
-    for (auto& p : particles) {
+    for (auto &p : particles) {
         p.density = 0;
-        for (auto& p_ : particles) {
-            glm::vec3 r = p_.pos - p.pos;
+        for (const auto &p_ : particles) {
+            glm::vec3 r = p.pos - p_.pos;
             p.density += p_.mass * Consts::poly6Kernel(r);
         }
         p.pressure = WATER_GAS_CONSTANT * (p.density - WATER_DENSITY);
@@ -78,13 +71,13 @@ void SPH::computeAcceleration() {
         glm::vec3 acc_viscosity = glm::vec3(0, 0, 0);
         
         for (auto& p_ : particles) {
-            glm::vec3 r = p_.pos - p.pos;
+            glm::vec3 r = p.pos - p_.pos;
             acc_pressure += Consts::poly6Grad(r) * (p_.mass/p_.density) * ((p.pressure+p_.pressure)/2);
-            acc_viscosity += Consts::poly6Lap(r) * (p_.mass/p_.density) * (p_.vel-p.vel);
+            acc_viscosity += Consts::poly6Lap(r) * (p_.mass/p_.density) * (p.vel-p_.vel);
         }
         
         p.acc -= acc_pressure / p.density;
-        p.acc += acc_viscosity * WATER_VISCOSITY;
+        p.acc -= acc_viscosity * WATER_VISCOSITY;
     }
 }
 
