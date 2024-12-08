@@ -10,3 +10,11 @@ mkdir build && cd build
 cmake .. && make
 ./main
 ```
+
+## Instructions
+- Enter : Pause/Unpause simulation
+- Space : Enable/Disable camera controller
+- WASD : Move camera position
+- Mouse : Move camera direction
+- Arrow key : Increse/Decrease sun's azimuth, elevation
+- Scroll : Zoom In/Out

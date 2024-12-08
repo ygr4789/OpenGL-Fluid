@@ -40,7 +40,7 @@ const unsigned int SHADOW_HEIGHT = 2048;
 const float planeSize = 15.f;
 const float sphereRadius = 0.4f;
 const float sigmaS = 10.0f; // bilateral filtering location parameter
-const float sigmaL = 1.0f; // bilateral filtering depth parameter
+const float sigmaL = 0.001f; // bilateral filtering depth parameter
 const float fillRate = 0.1f; // fill-rate for generating thickness
 
 // camera
