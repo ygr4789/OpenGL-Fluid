@@ -114,20 +114,12 @@ int main()
     Shader fluidSurfaceShader("../shaders/shader_surface.vs", "../shaders/shader_surface.fs");
     Shader skyboxShader("../shaders/shader_skybox.vs", "../shaders/shader_skybox.fs");
 
-    // define models
-    Model brickCubeModel = Model("../resources/brickcube/brickcube.obj");
-    brickCubeModel.diffuse = new Texture("../resources/brickcube/brickcube_d.png");
-    brickCubeModel.specular = new Texture("../resources/brickcube/brickcube_s.png");
-    brickCubeModel.normal = new Texture("../resources/brickcube/brickcube_n.png");
-    
+    // define model
     Model grassGroundModel = Model("../resources/plane.obj");
     grassGroundModel.diffuse = new Texture("../resources/grass_ground.jpg");
     grassGroundModel.ignoreShadow = true;
 
-    // Add entities to scene.
-    // you can change the position/orientation.
     Scene scene;
-    scene.addEntity(new Entity(&brickCubeModel, glm::mat4(1.0)));
 
     glm::mat4 planeWorldTransform = glm::mat4(1.0f);
     planeWorldTransform = glm::scale(planeWorldTransform, glm::vec3(planeSize));

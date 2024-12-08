@@ -5,8 +5,8 @@
 #include <vector>
 
 /* Properties of Water */
-constexpr float WATER_DENSITY = 300;
-constexpr float WATER_GAS_CONSTANT = 10;
+constexpr float WATER_DENSITY = 998;
+constexpr float WATER_GAS_CONSTANT = 2000;
 constexpr float WATER_VISCOSITY = 0.5;
 constexpr float GRAVITY = -9.8;
 
@@ -30,7 +30,7 @@ struct Particle {
     bool boundary;
 };
 
-Particle::Particle(float x = 0, float y = 0, float z = 0, float m = 0, bool b = false) {
+Particle::Particle(float x = 0, float y = 0, float z = 0, float m = 1, bool b = false) {
     Particle::pos = glm::vec3(x, y, z);
     Particle::vel = glm::vec3(0, 0, 0);
     Particle::acc = glm::vec3(0, 0, 0);
@@ -44,18 +44,30 @@ Particle::Particle(float x = 0, float y = 0, float z = 0, float m = 0, bool b = 
 void Particle::update(float dt) {
     vel += (acc * dt);
     pos += (vel * dt);
-    if (pos.x < -(BOUNDARY - EPSILON))
+    if (pos.x < -(BOUNDARY - EPSILON)) {
         pos.x = -(BOUNDARY - EPSILON);
-    if (pos.x > BOUNDARY - EPSILON)
+        vel.x = 0.05;
+    }
+    if (pos.x > BOUNDARY - EPSILON) {
         pos.x = BOUNDARY - EPSILON;
-    if (pos.y < -(BOUNDARY - EPSILON))
+        vel.x = - 0.05;
+    }
+    if (pos.y < -(BOUNDARY - EPSILON)) {
         pos.y = -(BOUNDARY - EPSILON);
-    if (pos.y > BOUNDARY - EPSILON)
+        vel.y = 0.05;
+    }
+    if (pos.y > BOUNDARY - EPSILON) {
         pos.y = BOUNDARY - EPSILON;
-    if (pos.z < -(BOUNDARY - EPSILON))
+        vel.y = - 0.05;
+    }
+    if (pos.z < -(BOUNDARY - EPSILON)) {
         pos.z = -(BOUNDARY - EPSILON);
-    if (pos.z > BOUNDARY - EPSILON)
+        vel.z = 0.05;
+    }
+    if (pos.z > BOUNDARY - EPSILON) {
         pos.z = BOUNDARY - EPSILON;
+        vel.z = - 0.05;
+    }
 }
 
 void Particle::print() {
