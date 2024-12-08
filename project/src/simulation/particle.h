@@ -6,8 +6,8 @@
 
 /* Properties of Water */
 constexpr float WATER_DENSITY = 998;
-constexpr float WATER_GAS_CONSTANT = 2000;
-constexpr float WATER_VISCOSITY = 0.5;
+constexpr float WATER_GAS_CONSTANT = 1000;
+constexpr float WATER_VISCOSITY = 1;
 constexpr float GRAVITY = -9.8;
 
 /* Boundary Condition */
@@ -17,9 +17,8 @@ constexpr float EPSILON = 0.1;
 using namespace std;
 
 struct Particle {
-    Particle(float x, float y, float z, float m, bool b);
+    Particle(float x, float y, float z, float m);
     void update(float dt);
-    void print();
     glm::vec3 pos;
     glm::vec3 vel;
     glm::vec3 acc;
@@ -27,18 +26,16 @@ struct Particle {
     float pressure;
     float density;
     float mass;
-    bool boundary;
 };
 
-Particle::Particle(float x = 0, float y = 0, float z = 0, float m = 1, bool b = false) {
+Particle::Particle(float x = 0, float y = 0, float z = 0, float m = 1) {
     Particle::pos = glm::vec3(x, y, z);
-    Particle::vel = glm::vec3(0, 0, 0);
-    Particle::acc = glm::vec3(0, 0, 0);
-    Particle::viscosity = glm::vec3(0,0,0);
+    Particle::vel = glm::vec3(0);
+    Particle::acc = glm::vec3(0);
+    Particle::viscosity = glm::vec3(0);
     Particle::pressure = 0;
     Particle::density = 0;
     Particle::mass = m;
-    Particle::boundary = b;
 }
 
 void Particle::update(float dt) {
@@ -46,33 +43,28 @@ void Particle::update(float dt) {
     pos += (vel * dt);
     if (pos.x < -(BOUNDARY - EPSILON)) {
         pos.x = -(BOUNDARY - EPSILON);
-        vel.x = 0.05;
+        vel.x = 0.1;
     }
     if (pos.x > BOUNDARY - EPSILON) {
         pos.x = BOUNDARY - EPSILON;
-        vel.x = - 0.05;
+        vel.x = - 0.1;
     }
     if (pos.y < -(BOUNDARY - EPSILON)) {
         pos.y = -(BOUNDARY - EPSILON);
-        vel.y = 0.05;
+        vel.y = 0.1;
     }
     if (pos.y > BOUNDARY - EPSILON) {
         pos.y = BOUNDARY - EPSILON;
-        vel.y = - 0.05;
+        vel.y = - 0.1;
     }
     if (pos.z < -(BOUNDARY - EPSILON)) {
         pos.z = -(BOUNDARY - EPSILON);
-        vel.z = 0.05;
+        vel.z = 0.1;
     }
     if (pos.z > BOUNDARY - EPSILON) {
         pos.z = BOUNDARY - EPSILON;
-        vel.z = - 0.05;
+        vel.z = - 0.1;
     }
-}
-
-void Particle::print() {
-    printf("position : %f, %f, %f\nacceleration : %f, %f, %f\n", pos.x, pos.y, pos.z, acc.x, acc.y, acc.z);
-    printf("density : %f, mass : %f\n", density, mass);
 }
 
 #endif

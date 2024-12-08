@@ -36,10 +36,10 @@ const unsigned int SCR_HEIGHT = 600;
 const unsigned int SHADOW_WIDTH = 2048;
 const unsigned int SHADOW_HEIGHT = 2048;
 const float planeSize = 15.f;
-const float sphereRadius = 0.7f;
+const float sphereRadius = 0.4f;
 const float sigmaS = 7.0f; // bilateral filtering location parameter
 const float sigmaL = 3.0f; // bilateral filtering depth parameter
-const float fillRate = 0.2f; // fill-rate for generating thickness
+const float fillRate = 0.1f; // fill-rate for generating thickness
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
@@ -260,6 +260,7 @@ int main()
         // update simulation
         // fluid.update(deltaTime);
         fluid.update(0.01);
+        cout << "\r" << "DeltaTime : " << deltaTime << std::flush;
         
         // point rendering configuration
         glEnable(GL_POINT_SPRITE);

@@ -1,25 +1,4 @@
 build
 .vscode
-project/.vs/project/FileContentIndex/15315605-576f-4f2a-878b-67066fba0245.vsidx
-project/.vs/project/FileContentIndex/c024c48a-3cda-495c-95c0-2978a28f63ac.vsidx
-project/.vs/project/v17/.wsuo
-project/.vs/project/v17/Browse.VC.db
-project/.vs/project/v17/Browse.VC.db-shm
-project/.vs/project/v17/Browse.VC.db-wal
-project/.vs/project/v17/Browse.VC.opendb
-project/.vs/project/v17/DocumentLayout.backup.json
-project/.vs/project/v17/DocumentLayout.json
-project/.vs/project/v17/ipch/AutoPCH/15f8d75362131793/MAIN.ipch
-project/.vs/project/v17/ipch/AutoPCH/889411c57bf3c652/GLAD.ipch
-project/.vs/ProjectSettings.json
-project/.vs/slnx.sqlite
-project/.vs/VSWorkspaceState.json
-project/src/render/light.h
-project/.vs/project/v17/Solution.VC.db
-project/.vs/project/FileContentIndex/fc5e17ef-6fc7-488c-be97-199ad2b8ceba.vsidx
-project/.vs/project/FileContentIndex/ee921b67-b343-45ad-a9a1-0329ef6dbd3a.vsidx
-project/.vs/project/FileContentIndex/15fa1bf4-09fc-4c6e-a1a5-547b781e9c9d.vsidx
-project/.vs/project/FileContentIndex/0a1ac261-5ebc-4367-bad9-2c3746d6ad0a.vsidx
-project/.vs/cmake.db
-project/.vs/CMake Overview
+project/.vs
 *.vsidx

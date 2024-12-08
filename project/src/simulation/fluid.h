@@ -31,7 +31,7 @@ public:
         std::mt19937 mt(rd());
         std::uniform_real_distribution<float> dist(0, 1);
         
-        const float resolution = 1;
+        const float resolution = 0.5;
         const float initialSize = 7;
         for (float x = -initialSize/2; x <= initialSize/2; x+= resolution) {
             for (float y = -initialSize/2; y<= initialSize/2; y+= resolution) {
@@ -40,7 +40,7 @@ public:
                     float noiseY = (dist(mt) * resolution) / 10;
                     float noiseZ = (dist(mt) * resolution) / 10;
                     
-                    Particle p(x + noiseX, y + noiseY, z + noiseZ, 1, false);
+                    Particle p(x + noiseX, y + noiseY, z + noiseZ, 1);
                     particles.push_back(p);
                 }
             }
@@ -51,7 +51,6 @@ public:
     
     void update(float deltaTime)
     {
-        //simulator.update(deltaTime);
         simulator.update(deltaTime);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, particles.size() * sizeof(Particle), &particles[0], GL_DYNAMIC_DRAW);  
