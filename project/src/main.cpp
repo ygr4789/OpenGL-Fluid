@@ -28,6 +28,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, DirectionalLight* sun);
 
 bool isWindowed = true;
+bool mouseEnabled = false;
 bool isKeyboardDone[1024] = { 0 };
 
 // setting
@@ -37,12 +38,12 @@ const unsigned int SHADOW_WIDTH = 2048;
 const unsigned int SHADOW_HEIGHT = 2048;
 const float planeSize = 15.f;
 const float sphereRadius = 0.4f;
-const float sigmaS = 7.0f; // bilateral filtering location parameter
-const float sigmaL = 3.0f; // bilateral filtering depth parameter
+const float sigmaS = 10.0f; // bilateral filtering location parameter
+const float sigmaL = 1.0f; // bilateral filtering depth parameter
 const float fillRate = 0.1f; // fill-rate for generating thickness
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
+Camera camera(glm::vec3(15.0f, 5.0f, 10.0f), glm::vec3(0,1,0), 215, -20);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 float cameraFar = 100.0f;
@@ -260,7 +261,7 @@ int main()
         // update simulation
         // fluid.update(deltaTime);
         fluid.update(0.01);
-        cout << "\r" << "DeltaTime : " << deltaTime << std::flush;
+        // cout << "\r" << "DeltaTime : " << deltaTime << std::flush;
         
         // point rendering configuration
         glEnable(GL_POINT_SPRITE);
@@ -355,6 +356,9 @@ void processInput(GLFWwindow* window, DirectionalLight* sun)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+        
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        mouseEnabled = !mouseEnabled;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -396,6 +400,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    if (!mouseEnabled) return;
+    
     if (firstMouse)
     {
         lastX = xpos;

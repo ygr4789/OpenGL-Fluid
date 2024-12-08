@@ -14,12 +14,13 @@ using namespace std;
 class SPH {
 public:
     vector<Particle> &particles;
+    Hash hash;
     
-    SPH(vector<Particle> &_particles): particles(_particles){}
+    SPH(vector<Particle> &_particles): particles(_particles), hash(_particles){}
 
     void init() {
-        bindHashTable(particles);
-        updateHashTable(particles);
+        hash.init();
+        hash.update();
         computeDensity();
         float max_density = 0.0;
         for (auto &p : particles) {
@@ -34,7 +35,7 @@ public:
     }
     
     void update(float dt) {
-        updateHashTable(particles);
+        hash.update();
         computeProperties();
         computeAcceleration();
         for (auto &p : particles) p.update(dt);
@@ -47,24 +48,24 @@ private:
 };
 
 void SPH::computeDensity() {
-    for (auto &p : particles) {
+    for (int i=0; i<particles.size(); i++) {
+        auto &p = particles[i];
         p.density = 1e-10;
-        for (int j : hashNearNeighbors(p.pos)) {
+        for (int j : hash.getNN(i)) {
             const auto &p_ = particles[j];
             glm::vec3 r = p.pos - p_.pos;
-            if (glm::length2(r) >= SQR_KERNEL_DISTANCE) continue;
             p.density += p.mass * Consts::poly6Kernel(r);
         }
     }
 }
 
 void SPH::computeProperties() {
-    for (auto &p : particles) {
+    for (int i=0; i<particles.size(); i++) {
+        auto &p = particles[i];
         p.density = 1e-10;
-        for (int j : hashNearNeighbors(p.pos)) {
+        for (int j : hash.getNN(i)) {
             const auto &p_ = particles[j];
             glm::vec3 r = p.pos - p_.pos;
-            if (glm::length2(r) >= SQR_KERNEL_DISTANCE) continue;
             p.density += p.mass * Consts::poly6Kernel(r);
         }
         
@@ -73,15 +74,15 @@ void SPH::computeProperties() {
 }
 
 void SPH::computeAcceleration() {
-    for (auto& p : particles) {
+    for (int i=0; i<particles.size(); i++) {
+        auto &p = particles[i];
         p.acc = glm::vec3(0, GRAVITY, 0);
         glm::vec3 acc_pressure = glm::vec3(0, 0, 0);
         glm::vec3 acc_viscosity = glm::vec3(0, 0, 0);
         
-        for (int j : hashNearNeighbors(p.pos)) {
+        for (int j : hash.getNN(i)) {
             const auto &p_ = particles[j];
             glm::vec3 r = p.pos - p_.pos;
-            if (glm::length2(r) >= SQR_KERNEL_DISTANCE) continue;
             acc_pressure += Consts::poly6Grad(r) * (p_.mass/p_.density) * ((p.pressure+p_.pressure)/2);
             acc_viscosity += Consts::poly6Lap(r) * (p_.mass/p_.density) * (p.vel-p_.vel);
         }
