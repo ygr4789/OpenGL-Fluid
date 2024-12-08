@@ -29,6 +29,7 @@ void processInput(GLFWwindow* window, DirectionalLight* sun);
 
 bool isWindowed = true;
 bool mouseEnabled = false;
+bool simulationEnabled = false;
 bool isKeyboardDone[1024] = { 0 };
 
 // setting
@@ -90,7 +91,8 @@ int main()
     glfwSetScrollCallback(window, scroll_callback);
 
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -184,7 +186,7 @@ int main()
     fluidSurfaceShader.setInt("smoothedDepthImage", 1);
     fluidSurfaceShader.setInt("thicknessImage", 2);
     fluidSurfaceShader.setInt("backgroundImage", 3);
-    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(0.0, 0.3, 1.0));
+    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(0.0, 0.05, 0.1));
     fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
     fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
     fluidSurfaceShader.setFloat("fluidMaterial.reflectance", 0.3);
@@ -260,7 +262,7 @@ int main()
         
         // update simulation
         // fluid.update(deltaTime);
-        fluid.update(0.01);
+        if (simulationEnabled) fluid.update(0.01);
         // cout << "\r" << "DeltaTime : " << deltaTime << std::flush;
         
         // point rendering configuration
@@ -302,6 +304,7 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         // restore to default
         glEnable(GL_DEPTH_TEST);
+        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         
         // use depth smoothing Shader
@@ -359,6 +362,9 @@ void processInput(GLFWwindow* window, DirectionalLight* sun)
         
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         mouseEnabled = !mouseEnabled;
+        
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+        simulationEnabled = !simulationEnabled;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
