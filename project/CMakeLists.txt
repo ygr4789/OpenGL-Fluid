@@ -33,6 +33,6 @@ if(UNIX)
 endif(UNIX)
 
 list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
-add_executable(${NAME} ${SOURCE})
+add_executable(${NAME} ${SOURCE} "src/simulation/hash.h")
 target_link_libraries(${NAME} ${LIBS})
 include_directories(${PROJECT_ORIGIN}/includes)
