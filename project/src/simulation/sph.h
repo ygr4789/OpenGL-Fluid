@@ -6,6 +6,7 @@
 
 #include "particle.h"
 #include "consts.h"
+#include "hash.h"
 
 using namespace std;
 
@@ -65,6 +66,8 @@ void SPH::computeProperties() {
 }
 
 void SPH::computeAcceleration() {
+    Hash hash;
+    hash.hashing(particles);
     for (auto& p : particles) {
         p.acc = glm::vec3(0, GRAVITY, 0);
         glm::vec3 acc_pressure = glm::vec3(0, 0, 0);
