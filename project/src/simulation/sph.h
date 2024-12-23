@@ -27,7 +27,6 @@ public:
             max_density = max(max_density, p.density);
         }
         const float WATER_PARTICLE_MASS = WATER_DENSITY / max_density;
-        printf("particle mass: %f\n", WATER_PARTICLE_MASS);
         for (auto &p : particles) {
             p.mass = WATER_PARTICLE_MASS;
         }

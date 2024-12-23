@@ -186,7 +186,7 @@ int main()
     fluidSurfaceShader.setInt("smoothedDepthImage", 1);
     fluidSurfaceShader.setInt("thicknessImage", 2);
     fluidSurfaceShader.setInt("backgroundImage", 3);
-    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(0.0, 0.05, 0.1));
+    fluidSurfaceShader.setVec3("fluidMaterial.color", glm::vec3(0, 0.1, 0.15));
     fluidSurfaceShader.setFloat("fluidMaterial.specular", 0.5);
     fluidSurfaceShader.setFloat("fluidMaterial.shininess", 64.0);
     fluidSurfaceShader.setFloat("fluidMaterial.reflectance", 0.3);

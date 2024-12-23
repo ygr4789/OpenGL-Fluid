@@ -12,7 +12,7 @@ uniform mat4 projection;
 void main()
 {
     vec3 N;
-    vec2 pointCoord = gl_PointCoord / fs_in.ViewDepth;
+    vec2 pointCoord = gl_PointCoord;
     N.xy = pointCoord * 2.0f - 1.0f;
     float r2 = dot(N.xy, N.xy);
     if (r2 > 1.0f) discard;
